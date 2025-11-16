@@ -1,140 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My WhatsApp Clone</title>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial;
-      background: #ece5dd;
-    }
-
-    .chat-container {
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .chat-box {
-      width: 450px;
-      height: 90vh;
-      background: #fff;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-
-    .header {
-      background: #075E54;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      text-align: center;
-    }
-
-    .messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-      background: #e5ddd5;
-    }
-
-    .msg {
-      padding: 10px 15px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      max-width: 70%;
-      font-size: 15px;
-    }
-
-    .me {
-      background: #dcf8c6;
-      margin-left: auto;
-    }
-
-    .bot {
-      background: #fff;
-      margin-right: auto;
-    }
-
-    .input-area {
-      display: flex;
-      padding: 10px;
-      background: #f0f0f0;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-
-    button {
-      width: 70px;
-      margin-left: 10px;
-      border: none;
-      background: #075E54;
-      color: white;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>My Chat App</title>
+    <style>
+        body { font-family: Arial; background:#ece5dd; margin:0; }
+        #chatContainer { display:none; height:100vh; display:flex; flex-direction:column; }
+        #header { background:#075e54; color:#fff; padding:15px; text-align:center; font-size:22px; }
+        #chatbox { flex:1; padding:10px; overflow-y:auto; }
+        .msg { padding:10px; margin:10px; max-width:60%; border-radius:5px; }
+        .user { background:#dcf8c6; margin-left:auto; }
+        .bot { background:#fff; margin-right:auto; }
+        #inputBar { padding:10px; background:white; display:flex; gap:10px; }
+        input { flex:1; padding:10px; border-radius:5px; border:1px solid #bbb; }
+        button { padding:10px 20px; border:0; background:#128c7e; color:white; border-radius:5px; }
+        
+        /* LOGIN BOX */
+        #loginBox {
+            text-align:center;
+            padding:20px;
+            margin-top:50px;
+        }
+        .otp-input { padding:10px; width:200px; margin:10px auto; display:block; }
+    </style>
 </head>
-
 <body>
 
-<div class="chat-container">
-  <div class="chat-box">
-    <div class="header">🔥 WhatsApp Clone</div>
+<!-- LOGIN SCREEN -->
+<div id="loginBox">
+    <h2>📱 Phone Login</h2>
+    <input id="phoneNumber" class="otp-input" type="text" placeholder="+91 9876543210">
 
-    <div class="messages" id="chatbox"></div>
+    <div id="recaptcha-container"></div>
 
-    <div class="input-area">
-      <input id="msg" placeholder="Type a message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+    <button onclick="sendOTP()">Send OTP</button>
+
+    <input id="otpCode" class="otp-input" type="text" placeholder="Enter OTP">
+    <button onclick="verifyOTP()">Verify OTP</button>
 </div>
 
+<!-- CHAT SCREEN -->
+<div id="chatContainer">
+    <div id="header">WhatsApp Clone</div>
+
+    <div id="chatbox"></div>
+
+    <div id="inputBar">
+        <input id="userInput" type="text" placeholder="Type a message…">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<!-- CHATBOT SCRIPT -->
 <script>
+function sendMessage(){
+    let msg = document.getElementById("userInput").value;
+    if(!msg) return;
 
-async function sendMessage() {
-  let msgEl = document.getElementById("msg");
-  let msg = msgEl.value;
-  if (msg.trim() === "") return;
+    let chatbox = document.getElementById("chatbox");
 
-  // Show user message
-  const chatbox = document.getElementById("chatbox");
+    let userDiv = document.createElement("div");
+    userDiv.className = "msg user";
+    userDiv.textContent = msg;
+    chatbox.appendChild(userDiv);
 
-  const userDiv = document.createElement("div");
-  userDiv.className = "msg me";
-  userDiv.textContent = msg;
-  chatbox.appendChild(userDiv);
-  chatbox.scrollTop = chatbox.scrollHeight;
+    document.getElementById("userInput").value = "";
 
-  // clear input and focus
-  msgEl.value = "";
-  msgEl.focus();
-
-  // Simulate bot response delay
-  await new Promise(resolve => setTimeout(resolve, 600));
-
-  const botDiv = document.createElement("div");
-  botDiv.className = "msg bot";
-  botDiv.textContent = "Bot: " + msg;
-  chatbox.appendChild(botDiv);
-  chatbox.scrollTop = chatbox.scrollHeight;
+    setTimeout(()=>{
+        let botDiv = document.createElement("div");
+        botDiv.className = "msg bot";
+        botDiv.textContent = "Bot: " + msg;
+        chatbox.appendChild(botDiv);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    },500);
 }
 </script>
+
+<!-- FIREBASE SCRIPT -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } 
+        from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBpysnHKQ4ytGKClJGOxFbmRaFEIT1lok",
+        authDomain: "mychatapp-1c98e.firebaseapp.com",
+        projectId: "mychatapp-1c98e",
+        storageBucket: "mychatapp-1c98e.appspot.com",
+        messagingSenderId: "561783815838",
+        appId: "1:561783815838:web:2fe4610543230223cc858f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.sendOTP = function(){
+        let phone = document.getElementById("phoneNumber").value;
+        if(!window.recaptchaVerifier){
+            window.recaptchaVerifier = new RecaptchaVerifier(auth,"recaptcha-container",{});
+        }
+        signInWithPhoneNumber(auth, phone, window.recaptchaVerifier)
+        .then(confirmation => {
+            window.confirmationResult = confirmation;
+            alert("OTP Sent!");
+        })
+        .catch(e => alert(e.message));
+    }
+
+    window.verifyOTP = function(){
+        let code = document.getElementById("otpCode").value;
+        window.confirmationResult.confirm(code)
+        .then(res=>{
+            alert("Login Successful!");
+            document.getElementById("loginBox").style.display="none";
+            document.getElementById("chatContainer").style.display="flex";
+        })
+        .catch(e => alert("Wrong OTP"));
+    }
+</script>
+
 </body>
 </html>
